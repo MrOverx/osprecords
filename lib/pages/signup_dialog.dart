@@ -68,8 +68,7 @@ class _SignUpDialogState extends State<SignUpDialog> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
-      print('OTP response status: ${res.statusCode}');
-      print('OTP response body: ${res.body}');
+      print('OTP response: ${res.body}'); // <-- Add this for debugging
       String errorMsg = 'Failed to send OTP';
       try {
         final body = jsonDecode(res.body);
@@ -93,7 +92,6 @@ class _SignUpDialogState extends State<SignUpDialog> {
         );
       }
     } catch (e) {
-      print('Network error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Network error: ${e.toString()}'),

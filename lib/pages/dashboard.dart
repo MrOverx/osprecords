@@ -31,7 +31,13 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _fetch();
-    _searchController.addListener(() => setState(() {}));
+    _searchController.addListener(() {
+      // Only update filtered list, not whole page
+      _loading.value = true;
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) _loading.value = false;
+      });
+    });
   }
 
   Future<void> _fetch() async {
@@ -72,7 +78,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context, listen: true);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     final isLoggedIn = userProvider.user.token.isNotEmpty;
     if (!isLoggedIn) {
       return Scaffold(
@@ -105,29 +111,29 @@ class _DashboardPageState extends State<DashboardPage> {
     final bool isSmallMobile = width < 480;
 
     return Scaffold(
-      // Responsive layout
-      drawer: isMobile ? _buildDrawer() : null,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Row(children: const [Text('osprecords Dashboard')]),
-        leading: isMobile
-            ? Builder(
-                builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
-                ),
-              )
-            : null,
+        title: const Text(
+          'osprecords Dashboard',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          tooltip: 'Back',
+        ),
         actions: [
           IconButton(
             tooltip: 'Refresh',
             onPressed: _fetch,
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.white),
           ),
           IconButton(
             tooltip: 'Notifications',
             onPressed: () {},
-            icon: const Icon(Icons.notifications_none),
+            icon: const Icon(Icons.notifications_none, color: Colors.white),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -330,10 +336,10 @@ class _DashboardPageState extends State<DashboardPage> {
                         : 12,
                   ),
                   Expanded(
-                    child: ValueListenableBuilder<bool>(
-                      valueListenable: _loading,
-                      builder: (context, loading, _) {
-                        if (loading) {
+                    child: ValueListenableBuilder<List<Map<String, dynamic>>>(
+                      valueListenable: _releases,
+                      builder: (context, releases, _) {
+                        if (_loading.value) {
                           return const Center(
                             child: CircularProgressIndicator(),
                           );
@@ -482,9 +488,8 @@ class _ReleaseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final imagePath = (data['coverImagePath'] ?? data['image'] ?? '')
         .toString();
-
-    // Use direct static path
-    String image = imagePath.isNotEmpty
+    // Use direct static path for image
+    final imageUrl = imagePath.isNotEmpty
         ? '${Constants.staticUri}/$imagePath'
         : '';
     final title = (data['releaseTitle'] ?? data['title'] ?? 'Untitled')
@@ -495,6 +500,7 @@ class _ReleaseCard extends StatelessWidget {
     final plan = (data['plan'] ?? 'Paid').toString();
     final releasedPass = _parseBool(data['releasedPass']);
     final createdRaw = (data['createdAt'] ?? data['created'] ?? '').toString();
+    final email = (data['email'] ?? '').toString();
     DateTime? created;
     try {
       if (createdRaw.isNotEmpty) created = DateTime.parse(createdRaw);
@@ -526,10 +532,9 @@ class _ReleaseCard extends StatelessWidget {
               ),
               child: Stack(
                 children: [
-                  // Show actual image if available, otherwise placeholder
-                  image.isNotEmpty
+                  imageUrl.isNotEmpty
                       ? Image.network(
-                          image,
+                          imageUrl,
                           width: double.infinity,
                           height: double.infinity,
                           fit: BoxFit.cover,
@@ -560,16 +565,20 @@ class _ReleaseCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor,
+                        color: releasedPass ? Colors.green : Colors.orange,
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(statusIcon, size: 12, color: Colors.white),
+                          Icon(
+                            releasedPass ? Icons.check_circle : Icons.pending,
+                            size: 12,
+                            color: Colors.white,
+                          ),
                           const SizedBox(width: 4),
                           Text(
-                            status,
+                            releasedPass ? 'Released' : 'Pending',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -613,6 +622,14 @@ class _ReleaseCard extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 2.0),
                       child: Text(
                         song,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  if (email.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Text(
+                        'Email: $email',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
@@ -665,16 +682,17 @@ class _Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget item(IconData icon, String label, String key) {
+      final isSelected = currentKey == key;
       return ListTile(
-        leading: Icon(icon, color: currentKey == key ? Colors.white : null),
+        leading: Icon(icon, color: isSelected ? Colors.yellow : Colors.white),
         title: Text(
           label,
           style: TextStyle(
-            color: currentKey == key ? Colors.white : null,
-            fontWeight: currentKey == key ? FontWeight.w600 : FontWeight.w400,
+            color: Colors.white,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
-        tileColor: currentKey == key ? Colors.blueGrey.shade800 : null,
+        tileColor: isSelected ? Colors.blueGrey.shade800 : null,
         onTap: () => onNavigate(key),
       );
     }
@@ -712,12 +730,11 @@ class _MiniSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget iconBtn(IconData icon, String key, {String? tooltip}) {
+      final isSelected = currentKey == key;
       return IconButton(
-        icon: Icon(
-          icon,
-          color: currentKey == key ? Colors.white : Colors.grey.shade400,
-        ),
+        icon: Icon(icon, color: isSelected ? Colors.yellow : Colors.white),
         tooltip: tooltip,
+        autofocus: false,
         onPressed: () => onNavigate(key),
       );
     }

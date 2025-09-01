@@ -11,7 +11,6 @@ import 'package:osprecords/services/release_service.dart';
 import 'package:osprecords/services/music_research_service.dart';
 import 'dart:convert'; // Added for base64Decode
 import 'dart:typed_data'; // Added for Uint8List
-import 'package:osprecords/pages/status_tracker_page.dart'; // Add this import at the top
 import 'package:osprecords/pages/dashboard.dart';
 
 PreferredSizeWidget _buildAppBar(
@@ -44,112 +43,132 @@ PreferredSizeWidget _buildAppBar(
     );
   }
 
+  final double maxContentWidth = 1100;
   return AppBar(
     backgroundColor: Colors.black,
     elevation: 0,
     automaticallyImplyLeading: false,
-    title: Row(
-      children: [
-        if (isMobile)
-          Builder(
-            builder: (context) => IconButton(
-              icon: Icon(Icons.menu, color: Colors.white),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-              tooltip: 'Menu',
-            ),
-          ),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [Colors.blue, Colors.black]),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            'osprecords.com',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        Spacer(),
-        if (!isMobile)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const DashboardPage(),
-                    ),
-                  );
-                },
-                child: Text('Dashboard', style: TextStyle(color: Colors.white)),
-              ),
-              TextButton(
-                onPressed: onFeaturesTap,
-                child: Text('Features', style: TextStyle(color: Colors.white)),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => AlbumDetailsForm()),
-                  );
-                },
-                child: Text(
-                  'Distribution',
-                  style: TextStyle(color: Colors.white),
+    title: Center(
+      child: Container(
+        constraints: BoxConstraints(maxWidth: maxContentWidth),
+        padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 32),
+        child: Row(
+          children: [
+            if (isMobile)
+              Builder(
+                builder: (context) => IconButton(
+                  icon: Icon(Icons.menu, color: Colors.white),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                  tooltip: 'Menu',
                 ),
               ),
-
-              // Add status symbol to navbar
-              SizedBox(width: 8),
-              if (isLoggedIn)
-                Builder(
-                  builder: (context) => IconButton(
-                    icon: userAvatar(),
-                    tooltip: user.name,
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  ),
-                )
-              else ...[
-                TextButton(
-                  onPressed: () {
-                    print('Log In button pressed');
-                    showDialog(
-                      context: context,
-                      builder: (_) => const LoginDialog(),
-                    );
-                  },
-                  child: Text('Log In', style: TextStyle(color: Colors.white)),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [Colors.blue, Colors.black]),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                'osprecords.com',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.white,
                 ),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => const SignUpDialog(),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                    ),
+              ),
+            ),
+            Spacer(),
+            if (!isMobile)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
                     child: Text(
-                      'Sign Up',
+                      'Dashboard',
                       style: TextStyle(color: Colors.white),
                     ),
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const DashboardPage(),
+                        ),
+                      );
+                    },
                   ),
-                ),
-              ],
-            ],
-          ),
-      ],
+                  TextButton(
+                    child: Text(
+                      'Features',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: () {},
+                  ),
+                  TextButton(
+                    child: Text(
+                      'Distribution',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => AlbumDetailsForm(),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(width: 8),
+                  isLoggedIn
+                      ? Builder(
+                          builder: (context) => IconButton(
+                            icon: userAvatar(),
+                            tooltip: user.name,
+                            onPressed: () => Scaffold.of(context).openDrawer(),
+                          ),
+                        )
+                      : Row(
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => const LoginDialog(),
+                                );
+                              },
+                              child: Text(
+                                'Log In',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => const SignUpDialog(),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.purple,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Sign Up',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                ],
+              ),
+          ],
+        ),
+      ),
     ),
   );
 }
@@ -229,7 +248,7 @@ Widget _buildDrawer(BuildContext context, {VoidCallback? onFeaturesTap}) {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.of(context).push(
+                    Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
                         builder: (context) => const DashboardPage(),
                       ),
@@ -352,8 +371,9 @@ class _OSPHomePageState extends State<OSPHomePage> {
   final GlobalKey _featureSectionKey = GlobalKey();
   int currentStep = 3; // Set to 3 to always show the button for testing
 
+  String _selectedPage = 'home';
+
   void _scrollToFeatureSection() {
-    // Wait for the next frame to ensure context is attached
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final context = _featureSectionKey.currentContext;
       if (context != null) {
@@ -366,6 +386,20 @@ class _OSPHomePageState extends State<OSPHomePage> {
     });
   }
 
+  void _onMenuSelect(String key) {
+    Navigator.of(context).pop();
+    if (key == 'dashboard') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => DashboardPage()),
+      );
+    } else {
+      setState(() {
+        _selectedPage = key;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -376,27 +410,221 @@ class _OSPHomePageState extends State<OSPHomePage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth <= 700;
+    final double maxContentWidth = 1100;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: _buildAppBar(context, onFeaturesTap: _scrollToFeatureSection),
-      drawer: _buildDrawer(context, onFeaturesTap: _scrollToFeatureSection),
-      // No endDrawer, always use the same drawer for both hamburger and profile icon
-      body: SingleChildScrollView(
-        controller: _scrollController,
+      drawer: Drawer(
+        backgroundColor: Colors.grey[900],
         child: Column(
           children: [
-            _buildHeroSection(),
-            _buildPlatformsSection(),
-            _buildFeatureCards(key: _featureSectionKey),
-            _buildToolsSection(),
-            _buildArtistSection(),
-            // --- Add plans section here ---
-            _buildPlansSection(),
-            // --- Footer remains last ---
-            _buildFooter(),
+            // Custom Profile Header
+            Container(
+              width: double.infinity,
+              color: Colors.grey[900],
+              padding: const EdgeInsets.only(top: 40, bottom: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Avatar with initial
+                  CircleAvatar(
+                    radius: 36,
+                    backgroundColor: Colors.red[700],
+                    child: Text(
+                      Provider.of<UserProvider>(context).user.name.isNotEmpty
+                          ? Provider.of<UserProvider>(
+                              context,
+                            ).user.name[0].toUpperCase()
+                          : '',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    Provider.of<UserProvider>(context).user.name,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    Provider.of<UserProvider>(context).user.email,
+                    style: TextStyle(
+                      color: Colors.blue[200],
+                      fontSize: 15,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'User ID: ${Provider.of<UserProvider>(context).user.id}',
+                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  ),
+                  SizedBox(height: 12),
+                ],
+              ),
+            ),
+            // Menu Items
+            Expanded(
+              child: Container(
+                color: Colors.white,
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.dashboard, color: Colors.teal),
+                      title: Text(
+                        'Dashboard',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      selected: _selectedPage == 'dashboard',
+                      onTap: () => _onMenuSelect('dashboard'),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.star, color: Colors.orange),
+                      title: Text(
+                        'Features',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      selected: _selectedPage == 'features',
+                      onTap: () {
+                        _onMenuSelect('features');
+                        _scrollToFeatureSection();
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.library_music, color: Colors.blue),
+                      title: Text(
+                        'Music',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      selected: _selectedPage == 'music',
+                      onTap: () => _onMenuSelect('music'),
+                    ),
+                    if (!Provider.of<UserProvider>(
+                      context,
+                    ).user.token.isEmpty) ...[
+                      ListTile(
+                        leading: Icon(Icons.logout, color: Colors.redAccent),
+                        title: Text(
+                          'Sign Out',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        onTap: () {
+                          AuthService().signOut(context);
+                        },
+                      ),
+                    ] else ...[
+                      ListTile(
+                        leading: Icon(Icons.person_add, color: Colors.purple),
+                        title: Text(
+                          'Sign Up',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          showDialog(
+                            context: context,
+                            builder: (_) => const SignUpDialog(),
+                          );
+                        },
+                      ),
+                      ListTile(
+                        leading: Icon(Icons.login, color: Colors.purple),
+                        title: Text(
+                          'Log In',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          showDialog(
+                            context: context,
+                            builder: (_) => const LoginDialog(),
+                          );
+                        },
+                      ),
+                    ],
+                    Divider(color: Colors.grey[300]),
+                    ListTile(
+                      leading: Icon(Icons.info, color: Colors.grey[600]),
+                      title: Text(
+                        'About',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        // Add about functionality if needed
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Footer
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[900],
+                border: Border(top: BorderSide(color: Colors.grey[800]!)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.phone, size: 16, color: Colors.grey[400]),
+                  SizedBox(width: 8),
+                  Text(
+                    'Support: support@osprecords.com',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
+      body: _selectedPage == 'dashboard'
+          ? DashboardPage()
+          : _selectedPage == 'features'
+          ? SingleChildScrollView(
+              controller: _scrollController,
+              child: Center(
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: maxContentWidth),
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 32),
+                  child: Column(
+                    children: [
+                      _buildFeatureCards(key: _featureSectionKey),
+                      _buildFooter(),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          : SingleChildScrollView(
+              controller: _scrollController,
+              child: Center(
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: maxContentWidth),
+                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 32),
+                  child: Column(
+                    children: [
+                      _buildHeroSection(),
+                      _buildPlatformsSection(),
+                      _buildFeatureCards(key: _featureSectionKey),
+                      _buildToolsSection(),
+                      _buildArtistSection(),
+                      _buildPlansSection(),
+                      _buildFooter(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
     );
   }
 }
@@ -751,6 +979,7 @@ Widget _buildToolsSection() {
                   color: Colors.grey[400],
                   height: 1.6,
                 ),
+                textAlign: TextAlign.left,
               ),
               SizedBox(height: 30),
               ElevatedButton(
